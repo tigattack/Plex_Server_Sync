@@ -147,7 +147,7 @@ fi
 function Host2IP() {
     if [[ $2 == "remote" ]]; then
         # Get remote IP from hostname
-        ip=$(ssh "${dst_User}@${1,,}" -p "$dst_SshPort"\
+        ip=$(ssh "${dst_User}@${1,,}" -p "$dst_SshPort" -i "$ssh_Key_File"\
             "ip route get 1 | sed 's/^.*src \([^ ]*\).*$/\1/;q'")
     else
         # Get local IP from hostname
@@ -231,7 +231,7 @@ function PlexControl() {
             sudo systemctl "$1" plexmediaserver
         elif [[ $2 == "remote" ]]; then
             # stop or start remote server
-            ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" "sudo systemctl $1 plexmediaserver"
+            ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" "sudo systemctl $1 plexmediaserver"
         else
             echo "Invalid parameter #2: $2" |& tee -a "$Log"
             exit 1
@@ -281,7 +281,7 @@ fi
 # Backup destination Preferences.xml
 
 # Backup Preferences.xml to Preferences.bak
-ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" \
+ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File"\
     "sudo cp -u '${dst_Directory}/Preferences.xml' '${dst_Directory}/Preferences.bak'" |& tee -a "$Log"
 
 
@@ -322,7 +322,7 @@ if [[ ${Delete,,} == yes ]];then
 fi
 
 # --delete doesn't delete if you have * wildcard after source directory path
-rsync --rsh="ssh -p$dst_SshPort"  --rsync-path="sudo rsync" \
+rsync --rsh="ssh -p$dst_SshPort -i \"$ssh_Key_File\""  --rsync-path="sudo rsync" \
     -rlhtO "$@" --progress --stats --exclude-from="$Exclude_File" \
     "$src_Directory/" "$dst_User@$dst_IP":"$dst_Directory" |& tee -a "$Log"
 
@@ -335,11 +335,11 @@ echo -e "\nCopying edit_preferences.sh to destination" |& tee -a "$Log"
 # Ensure executable bit is set on edit_preferences.sh
 chmod +x "$SCRIPTPATH/edit_preferences.sh"
 
-rsync --rsh="ssh -p$dst_SshPort" --rsync-path="sudo rsync" -Eh --progress \
+rsync --rsh="ssh -p$dst_SshPort -i \"$ssh_Key_File\"" --rsync-path="sudo rsync" -Eh --progress \
     "$SCRIPTPATH/edit_preferences.sh" "$dst_User@$dst_IP":"${dst_Directory// /\\ }/"
 
 echo -e "\nRunning $dst_Directory/edit_preferences.sh" |& tee -a "$Log"
-ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" "sudo '${dst_Directory}/edit_preferences.sh'" |& tee -a "$Log"
+ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" "sudo '${dst_Directory}/edit_preferences.sh'" |& tee -a "$Log"
 
 
 #-----------------------------------------------------
