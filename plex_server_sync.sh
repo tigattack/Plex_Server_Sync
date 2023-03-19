@@ -332,6 +332,13 @@ rsync --rsh="ssh -p$dst_SshPort -i \"$ssh_Key_File\"" --rsync-path="sudo rsync" 
 echo -e "\nRunning $dst_Directory/edit_preferences.sh" |& tee -a "$Log"
 ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" "sudo '${dst_Directory}/edit_preferences.sh'" |& tee -a "$Log"
 
+
+#-----------------------------------------------------
+# Ensure destination directory is owned by Plex
+
+echo -e "\nSetting permissions on destination directory" |& tee -a "$Log"
+ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" "sudo chown -R plex. '${dst_Directory}''" |& tee -a "$Log"
+
 #-----------------------------------------------------
 # Start both Plex servers
 
