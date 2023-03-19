@@ -33,16 +33,18 @@ if [ "$Shell" != "GNU bash" ]; then
     exit 1
 fi
 
-SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+SCRIPTPATH="$(
+    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    pwd -P
+)"
 
 # Read variables from plex_server_sync.config
-if [[ -f "$SCRIPTPATH/plex_server_sync.config" ]];then
+if [[ -f "$SCRIPTPATH/plex_server_sync.config" ]]; then
     source "$SCRIPTPATH/plex_server_sync.config"
 else
     echo "plex_server_sync.config file missing!"
     exit 1
 fi
-
 
 #-----------------------------------------------------
 # Set date and time variables
@@ -51,8 +53,7 @@ fi
 start="${SECONDS}"
 
 # Get Start Time and Date
-Started=$( date )
-
+Started=$(date)
 
 #-----------------------------------------------------
 # Set log file name
@@ -60,20 +61,19 @@ Started=$( date )
 if [[ ! -d $LogPath ]]; then
     LogPath=$SCRIPTPATH
 fi
-Log="$LogPath/$( date '+%Y%m%d')_Plex_Server_Sync.log"
+Log="$LogPath/$(date '+%Y%m%d')_Plex_Server_Sync.log"
 if [[ -f $Log ]]; then
     # Include hh-mm if log file already exists (already run today)
-    Log="$LogPath/$( date '+%Y%m%d-%H%M')_Plex_Server_Sync.log"
+    Log="$LogPath/$(date '+%Y%m%d-%H%M')_Plex_Server_Sync.log"
 fi
 ErrLog="${Log%.*}_ERRORS.log"
 
 # Log header
 CYAN='\e[0;36m'
 WHITE='\e[0;37m'
-echo -e "${CYAN}--- Plex Server Sync ---${WHITE}"  # shell only
-echo -e "--- Plex Server Sync ---\n" 1>> "$Log"    # log only
+echo -e "${CYAN}--- Plex Server Sync ---${WHITE}" # shell only
+echo -e "--- Plex Server Sync ---\n" 1>>"$Log"    # log only
 echo -e "Syncing $src_IP to $dst_IP\n" |& tee -a "$Log"
-
 
 #-----------------------------------------------------
 # Initial checks
@@ -81,7 +81,6 @@ echo -e "Syncing $src_IP to $dst_IP\n" |& tee -a "$Log"
 # Convert hostnames to lower case
 src_IP=${src_IP,,}
 dst_IP=${dst_IP,,}
-
 
 if [[ -z $dst_SshPort ]]; then dst_SshPort=22; fi
 
@@ -92,53 +91,50 @@ fi
 
 Exclude_File="$SCRIPTPATH/plex_rsync_exclude.txt"
 if [[ ! -f $Exclude_File ]]; then
-    echo -e "Aborting! Exclude_File not found: \n$Exclude_File"  |& tee -a "$Log"
+    echo -e "Aborting! Exclude_File not found: \n$Exclude_File" |& tee -a "$Log"
     exit 1
 fi
 
 edit_preferences="$SCRIPTPATH/edit_preferences.sh"
 if [[ ! -f $edit_preferences ]]; then
-    echo -e "Aborting! edit_preferences.sh not found: \n$edit_preferences"  |& tee -a "$Log"
+    echo -e "Aborting! edit_preferences.sh not found: \n$edit_preferences" |& tee -a "$Log"
     exit 1
 fi
 
 # Check script is running on the source device
-host=$(hostname)  # for comparability
-ip=$(ip route get 1 | sed 's/^.*src \([^ ]*\).*$/\1/;q')  # for comparability
+host=$(hostname)                                         # for comparability
+ip=$(ip route get 1 | sed 's/^.*src \([^ ]*\).*$/\1/;q') # for comparability
 if [[ $src_IP != "${host,,}" ]] && [[ $src_IP != "$ip" ]]; then
-    echo "Aborting! Script is not running on source device: $src_IP"  |& tee -a "$Log"
+    echo "Aborting! Script is not running on source device: $src_IP" |& tee -a "$Log"
     exit 1
 fi
 
 echo "Source:      $src_Directory" |& tee -a "$Log"
 echo "Destination: $dst_Directory" |& tee -a "$Log"
 
-
 if [[ ${Delete,,} != "yes" ]] && [[ ${Delete,,} != "no" ]]; then
     echo -e "\nDelete extra files on destination? [y/n]:" |& tee -a "$Log"
     read -r -t 10 answer
     if [[ ${answer,,} == y ]]; then
         Delete=yes
-        echo yes 1>> "$Log"
+        echo yes 1>>"$Log"
     else
-        echo no 1>> "$Log"
+        echo no 1>>"$Log"
     fi
-    answer=    
+    answer=
 fi
-
 
 if [[ ${DryRun,,} != "yes" ]] && [[ ${DryRun,,} != "no" ]]; then
     echo -e "\nDo a dry run test? [y/n]:" |& tee -a "$Log"
     read -r -t 10 answer
     if [[ ${answer,,} == y ]]; then
         DryRun=yes
-        echo yes 1>> "$Log"
+        echo yes 1>>"$Log"
     else
-        echo no 1>> "$Log"
+        echo no 1>>"$Log"
     fi
-    answer=    
+    answer=
 fi
-
 
 #-----------------------------------------------------
 # Check host and destination are not the same
@@ -147,7 +143,7 @@ fi
 function Host2IP() {
     if [[ $2 == "remote" ]]; then
         # Get remote IP from hostname
-        ip=$(ssh "${dst_User}@${1,,}" -p "$dst_SshPort" -i "$ssh_Key_File"\
+        ip=$(ssh "${dst_User}@${1,,}" -p "$dst_SshPort" -i "$ssh_Key_File" \
             "ip route get 1 | sed 's/^.*src \([^ ]*\).*$/\1/;q'")
     else
         # Get local IP from hostname
@@ -168,7 +164,6 @@ elif [[ $(Host2IP "$src_IP") == $(Host2IP "$dst_IP" remote) ]]; then
     echo "Target: $dst_IP"
     exit 1
 fi
-
 
 #-----------------------------------------------------
 # Get Plex version BEFORE we stop both Plex servers
@@ -204,10 +199,10 @@ if [[ ! $src_Version ]] || [[ ! $dst_Version ]]; then
     echo "Are both Plex versions the same? [y/n]" |& tee -a "$Log"
     read -r answer
     if [[ ${answer,,} != y ]]; then
-        echo no 1>> "$Log"
+        echo no 1>>"$Log"
         exit 1
     else
-        echo yes 1>> "$Log"
+        echo yes 1>>"$Log"
     fi
 fi
 
@@ -219,7 +214,6 @@ if [[ $src_Version != "$dst_Version" ]]; then
         exit 1
     fi
 fi
-
 
 #-----------------------------------------------------
 # Plex Stop Start function
@@ -237,7 +231,7 @@ function PlexControl() {
             exit 1
         fi
         if [[ $1 == "stop" ]]; then
-            sleep 5  # Give sockets a moment to close
+            sleep 5 # Give sockets a moment to close
         fi
     else
         echo "Invalid parameter #1: $1" |& tee -a "$Log"
@@ -246,7 +240,6 @@ function PlexControl() {
     return
 }
 
-
 #-----------------------------------------------------
 # Stop both Plex servers
 
@@ -254,8 +247,7 @@ echo "Stopping Plex on $src_IP" |& tee -a "$Log"
 PlexControl stop local |& tee -a "$Log"
 echo -e "\nStopping Plex on $dst_IP" |& tee -a "$Log"
 PlexControl stop remote |& tee -a "$Log"
-echo >> "$Log"
-
+echo >>"$Log"
 
 #-----------------------------------------------------
 # Check both servers have stopped
@@ -276,19 +268,20 @@ if [[ $abort ]]; then
     exit 1
 fi
 
-
 #-----------------------------------------------------
 # Backup destination Preferences.xml
 
 # Backup Preferences.xml to Preferences.bak
-ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File"\
+ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" \
     "sudo cp -pu '${dst_Directory}/Preferences.xml' '${dst_Directory}/Preferences.bak'" |& tee -a "$Log"
-
 
 #-----------------------------------------------------
 # Sync source to destination with rsync
 
-cd / || { echo "cd / failed!" |& tee -a "$Log"; exit 1; }
+cd / || {
+    echo "cd / failed!" |& tee -a "$Log"
+    exit 1
+}
 echo ""
 
 # ------ rsync flags used ------
@@ -306,26 +299,24 @@ echo ""
 # --delete        delete extraneous files from destination dirs
 # -n, --dry-run   perform a trial run with no changes made
 
-
 # Unset any existing arguments
 while [[ $1 ]]; do shift; done
 
-if [[ ${DryRun,,} == yes ]];then
+if [[ ${DryRun,,} == yes ]]; then
     # Set --dry-run flag for rsync
     set -- "$@" "--dry-run"
     echo Running an rsync dry-run test |& tee -a "$Log"
 fi
-if [[ ${Delete,,} == yes ]];then
+if [[ ${Delete,,} == yes ]]; then
     # Set --delete flag for rsync
     set -- "$@" "--delete"
     echo Running rsync with delete flag |& tee -a "$Log"
 fi
 
 # --delete doesn't delete if you have * wildcard after source directory path
-rsync --rsh="ssh -p$dst_SshPort -i \"$ssh_Key_File\""  --rsync-path="sudo rsync" \
+rsync --rsh="ssh -p$dst_SshPort -i \"$ssh_Key_File\"" --rsync-path="sudo rsync" \
     -rlhtO "$@" --progress --stats --exclude-from="$Exclude_File" \
     "$src_Directory/" "$dst_User@$dst_IP":"${dst_Directory// /\\ }/" |& tee -a "$Log"
-
 
 #-----------------------------------------------------
 # Restore unique IDs to destination's Preferences.xml
@@ -341,7 +332,6 @@ rsync --rsh="ssh -p$dst_SshPort -i \"$ssh_Key_File\"" --rsync-path="sudo rsync" 
 echo -e "\nRunning $dst_Directory/edit_preferences.sh" |& tee -a "$Log"
 ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" "sudo '${dst_Directory}/edit_preferences.sh'" |& tee -a "$Log"
 
-
 #-----------------------------------------------------
 # Start both Plex servers
 
@@ -350,34 +340,32 @@ PlexControl start local |& tee -a "$Log"
 echo -e "\nStarting Plex on $dst_IP" |& tee -a "$Log"
 PlexControl start remote |& tee -a "$Log"
 
-
 #-----------------------------------------------------
 # Check if there errors from rsync or cp
 
 if [[ -f $Log ]]; then
     tmp=$(awk '/^(rsync|cp|\*\*\*|IO error).*/' "$Log")
     if [[ -n $tmp ]]; then
-        echo "$tmp" >> "$ErrLog"
+        echo "$tmp" >>"$ErrLog"
     fi
 fi
 if [[ -f $ErrLog ]]; then
-    echo -e "\n${CYAN}Some errors occurred!${WHITE} See:"  # shell only
-    echo -e "\nSome errors occurred! See:" >> "$Log"       # log only
+    echo -e "\n${CYAN}Some errors occurred!${WHITE} See:" # shell only
+    echo -e "\nSome errors occurred! See:" >>"$Log"       # log only
     echo "$ErrLog" |& tee -a "$Log"
 fi
-
 
 #--------------------------------------------------------------------------
 # Append the time taken to stdout
 
 # End Time and Date
-Finished=$( date )
+Finished=$(date)
 
 # bash timer variable to log time taken
 end="${SECONDS}"
 
 # Elapsed time in seconds
-Runtime=$(( end - start ))
+Runtime=$((end - start))
 
 # Append start and end date/time and runtime
 echo -e "\nBackup Started: " "${Started}" |& tee -a "$Log"
@@ -385,8 +373,7 @@ echo "Plex Sync Finished:" "${Finished}" |& tee -a "$Log"
 # Append days, hours, minutes and seconds from $Runtime
 printf "Plex Sync Duration: " |& tee -a "$Log"
 printf '%dd:%02dh:%02dm:%02ds\n' \
-    $((Runtime/86400)) $((Runtime%86400/3600)) $((Runtime%3600/60)) $((Runtime%60)) |& tee -a "$Log"
+    $((Runtime / 86400)) $((Runtime % 86400 / 3600)) $((Runtime % 3600 / 60)) $((Runtime % 60)) |& tee -a "$Log"
 echo "" |& tee -a "$Log"
-
 
 exit
