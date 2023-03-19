@@ -1,10 +1,15 @@
 # Plex Server Sync
 Sync main Plex server database &amp; metadata to a backup Plex server
 
-<a href="https://github.com/007revad/Plex_Server_Sync/releases"><img src="https://img.shields.io/github/release/007revad/Plex_Server_Sync.svg"></a>
-<a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2F007revad%2FPlex_Server_Sync&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
-
 <p align="center"><img src="plex_server_sync_logo.png"></p>
+
+This fork is modified for my own use cases.
+
+Summary of changes:
+- Use sudo everywhere - My Plex appdata directory has permissions 770.
+- Use rsync instead of scp - Same reason as above.
+- Remove DSM/Asustor support - Eliminate complexity from features I don't need.
+- Some bug fixes and code cleanup.
 
 ### Description
 
@@ -18,7 +23,7 @@ This script was written for people who:
 
 The script needs to run on the source plex server machine.
 
-Tested on Synolgy DSM 7, DSM 6 and Asustor ADM. It should also work on Linux.
+Tested on Debian 11.
 
 #### What the script does
 
@@ -58,22 +63,7 @@ It does **not** do a 2-way sync. It only syncs one Plex server to another Plex s
 
 5. **SSH Keys and sudoers**
 
-   If you want to schedule the script to run unattended, as a scheduled cron job, the users need to have sudoers and SSH keys setup so that the SSH, SCP and rsync commands can access the remote server without you entering the user's password. 
-
-**Asustor NAS requirements**
-
-Because the Asustor only has Busybox ash and this script requires bash you'll need to instal bash.
-
-To install bash on your Asustor:
-
-1. First install Entware from App Central. 
-
-2. Then run the following commands via SSH. You can run the commands in "Shell In A Box" from App Central, or use PuTTY.
-
-   ```YAML
-   opkg update && opkg upgrade
-   opkg install bash
-   ```
+   If you want to schedule the script to run unattended, as a scheduled cron job, the users need to have passwordless sudo enabled and SSH keys setup so that the SSH and rsync commands can access the remote server without you entering the user's password. 
 
 ### Settings
 
@@ -83,12 +73,10 @@ You need to set the source and destination settings in the **plex_server_sync.co
 
 ```YAML
 src_IP=192.168.0.70
-src_OS=DSM7
 src_Directory="/volume1/PlexMediaServer/AppData/Plex Media Server"
 src_User=Bob
 
 dst_IP=192.168.0.60
-dst_OS=DSM6
 dst_Directory="/volume1/Plex/Library/Application Support/Plex Media Server"
 dst_User=Bob
 dst_SshPort=22

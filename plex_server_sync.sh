@@ -14,7 +14,7 @@
 #     3. edit_preferences.sh
 #
 # If you want to schedule this script to run as a user:
-#  1. You need SSH keys setup so SCP and rsync can connect without passwords.
+#  1. You need SSH keys setup so rsync can connect without passwords.
 #  2. You also need your user to be able to sudo without a password prompt.
 #
 # https://github.com/007revad/Plex_Server_Sync
@@ -33,20 +33,15 @@ if [ "$Shell" != "GNU bash" ]; then
     exit 1
 fi
 
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # Read variables from plex_server_sync.config
-if [[ -f $(dirname -- "$0";)/plex_server_sync.config ]];then
-    source $(dirname -- "$0";)/plex_server_sync.config
+if [[ -f "$SCRIPTPATH/plex_server_sync.config" ]];then
+    source "$SCRIPTPATH/plex_server_sync.config"
 else
     echo "plex_server_sync.config file missing!"
     exit 1
 fi
-
-
-#src_Directory="/volume1/plex_test/AppData/Plex Media Server"             # test, delete later ##########
-#dst_Directory="/volume1/plex_test/Library/Plex Media Server"             # test, delete later ##########
-
-#dst_Directory="/volume1/plex_test/From DSM7"                             # test, delete later ##########
 
 
 #-----------------------------------------------------
@@ -63,7 +58,7 @@ Started=$( date )
 # Set log file name
 
 if [[ ! -d $LogPath ]]; then
-    LogPath=$( dirname -- "$0"; )
+    LogPath=$SCRIPTPATH
 fi
 Log="$LogPath/$( date '+%Y%m%d')_Plex_Server_Sync.log"
 if [[ -f $Log ]]; then
@@ -95,13 +90,13 @@ if [[ ! $dst_SshPort =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-Exclude_File="$( dirname -- "$0"; )/plex_rsync_exclude.txt"
+Exclude_File="$SCRIPTPATH/plex_rsync_exclude.txt"
 if [[ ! -f $Exclude_File ]]; then
     echo -e "Aborting! Exclude_File not found: \n$Exclude_File"  |& tee -a "$Log"
     exit 1
 fi
 
-edit_preferences="$( dirname -- "$0"; )/edit_preferences.sh"
+edit_preferences="$SCRIPTPATH/edit_preferences.sh"
 if [[ ! -f $edit_preferences ]]; then
     echo -e "Aborting! edit_preferences.sh not found: \n$edit_preferences"  |& tee -a "$Log"
     exit 1
@@ -233,51 +228,10 @@ function PlexControl() {
     if [[ $1 == "start" ]] || [[ $1 == "stop" ]]; then
         if [[ $2 == "local" ]]; then
             # stop or start local server
-            case ${src_OS,,} in
-                dsm7)
-                    sudo /usr/syno/bin/synopkg "$1" PlexMediaServer >/dev/null
-                    ;;
-                dsm6)
-                    sudo /usr/syno/bin/synopkg "$1" "Plex Media Server"
-                    ;;
-                adm)
-                    sudo /usr/local/AppCentral/plexmediaserver/CONTROL/start-stop.sh "$1"
-                    ;;
-                linux)
-                    # UNTESTED
-                    #sudo systemctl "$1" plexmediaserver
-                    sudo service plexmediaserver "$1"
-                    ;;
-                *)
-                    echo "Unknown local OS type. Cannot $1 Plex." |& tee -a "$Log"
-                    exit 1
-                    ;;
-            esac
+            sudo systemctl "$1" plexmediaserver
         elif [[ $2 == "remote" ]]; then
             # stop or start remote server
-            case ${dst_OS,,} in
-                dsm7)
-                    ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" \
-                        "sudo /usr/syno/bin/synopkg $1 PlexMediaServer" >/dev/null
-                    ;;
-                dsm6)
-                    ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" \
-                        "sudo /usr/syno/bin/synopkg $1 Plex\ Media\ Server"
-                    ;;
-                adm)
-                    ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" \
-                        "sudo /usr/local/AppCentral/plexmediaserver/CONTROL/start-stop.sh $1"
-                    ;;
-                linux)
-                    # UNTESTED
-                    #ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" "sudo systemctl $1 plexmediaserver"
-                    ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" "sudo service plexmediaserver $1"
-                    ;;
-                *)
-                    echo "Unknown remote OS type. Cannot $1 Plex." |& tee -a "$Log"
-                    exit 1
-                    ;;
-            esac
+            ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" "sudo systemctl $1 plexmediaserver"
         else
             echo "Invalid parameter #2: $2" |& tee -a "$Log"
             exit 1
@@ -328,7 +282,7 @@ fi
 
 # Backup Preferences.xml to Preferences.bak
 ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" \
-    "cp -u '${dst_Directory}/Preferences.xml' '${dst_Directory}/Preferences.bak'" |& tee -a "$Log"
+    "sudo cp -u '${dst_Directory}/Preferences.xml' '${dst_Directory}/Preferences.bak'" |& tee -a "$Log"
 
 
 #-----------------------------------------------------
@@ -368,8 +322,9 @@ if [[ ${Delete,,} == yes ]];then
 fi
 
 # --delete doesn't delete if you have * wildcard after source directory path
-rsync --rsh="ssh -p$dst_SshPort" -rlhtO "$@" --progress --stats \
-    --exclude-from="$Exclude_File" "$src_Directory/" "$dst_IP":"$dst_Directory" |& tee -a "$Log"
+rsync --rsh="ssh -p$dst_SshPort"  --rsync-path="sudo rsync" \
+    -rlhtO "$@" --progress --stats --exclude-from="$Exclude_File" \
+    "$src_Directory/" "$dst_User@$dst_IP":"$dst_Directory" |& tee -a "$Log"
 
 
 #-----------------------------------------------------
@@ -377,19 +332,14 @@ rsync --rsh="ssh -p$dst_SshPort" -rlhtO "$@" --progress --stats \
 
 echo -e "\nCopying edit_preferences.sh to destination" |& tee -a "$Log"
 
-if [[ $src_OS == DSM7 ]]; then
-    # -O flag is required if DSM7 is the source or SCP defaults to SFTP
-    sudo -u $src_User scp -O -P $dst_SshPort "$(dirname "$0")/edit_preferences.sh" \
-        $dst_User@$dst_IP:"'${dst_Directory}/'" |& tee -a "$Log"
-else
-    # Prepend spaces in destination path with \\ 
-    spath=$(dirname "$0")
-    sudo -u $src_User scp -P $dst_SshPort "${spath}/edit_preferences.sh" \
-        $dst_User@$dst_IP:"${dst_Directory// /\\ }/" |& tee -a "$Log"
-fi
+# Ensure executable bit is set on edit_preferences.sh
+chmod +x "$SCRIPTPATH/edit_preferences.sh"
+
+rsync --rsh="ssh -p$dst_SshPort" --rsync-path="sudo rsync" -Eh --progress \
+    "$SCRIPTPATH/edit_preferences.sh" "$dst_User@$dst_IP":"${dst_Directory// /\\ }/"
 
 echo -e "\nRunning $dst_Directory/edit_preferences.sh" |& tee -a "$Log"
-ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" "'${dst_Directory}/edit_preferences.sh'" |& tee -a "$Log"
+ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" "sudo '${dst_Directory}/edit_preferences.sh'" |& tee -a "$Log"
 
 
 #-----------------------------------------------------
@@ -402,10 +352,10 @@ PlexControl start remote |& tee -a "$Log"
 
 
 #-----------------------------------------------------
-# Check if there errors from rsync, scp or cp
+# Check if there errors from rsync or cp
 
 if [[ -f $Log ]]; then
-    tmp=$(awk '/^(rsync|cp|scp|\*\*\*|IO error).*/' "$Log")
+    tmp=$(awk '/^(rsync|cp|\*\*\*|IO error).*/' "$Log")
     if [[ -n $tmp ]]; then
         echo "$tmp" >> "$ErrLog"
     fi
@@ -440,4 +390,3 @@ echo "" |& tee -a "$Log"
 
 
 exit
-
