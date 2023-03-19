@@ -100,6 +100,8 @@ elif [[ $Main_VaapiDriver ]]; then
     changed=$((changed+1))
 fi
 
+# Ensure Preferences.xml is owned by Plex user & group.
+sudo chown -v plex. Preferences.xml
 
 if [[ $changed -eq "1" ]]; then
     echo -e "\n$changed change made in Preferences.xml"
