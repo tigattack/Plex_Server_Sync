@@ -324,7 +324,7 @@ fi
 # --delete doesn't delete if you have * wildcard after source directory path
 rsync --rsh="ssh -p$dst_SshPort -i \"$ssh_Key_File\""  --rsync-path="sudo rsync" \
     -rlhtO "$@" --progress --stats --exclude-from="$Exclude_File" \
-    "$src_Directory/" "$dst_User@$dst_IP":"$dst_Directory" |& tee -a "$Log"
+    "$src_Directory/" "$dst_User@$dst_IP":"${dst_Directory// /\\ }/" |& tee -a "$Log"
 
 
 #-----------------------------------------------------
