@@ -337,7 +337,7 @@ ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" "sudo '${dst_Di
 # Ensure destination directory is owned by Plex
 
 echo -e "\nSetting permissions on destination directory" |& tee -a "$Log"
-ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" "sudo chown -R plex. '${dst_Directory}''" |& tee -a "$Log"
+ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" "sudo chown -R plex. '${dst_Directory}'" |& tee -a "$Log"
 
 #-----------------------------------------------------
 # Start both Plex servers
