@@ -6,7 +6,7 @@ Sync main Plex server database &amp; metadata to a backup Plex server
 This fork is modified for my own use cases.
 
 Summary of changes:
-- Use sudo everywhere - My Plex appdata directory has permissions 770.
+- Use sudo everywhere - My Plex appdata directory is unreadable for users other than plex.
 - Use rsync instead of scp - Same reason as above.
 - Remove DSM/Asustor support - Eliminate complexity from features I don't need.
 - Some bug fixes and code cleanup.
@@ -50,9 +50,9 @@ It does **not** do a 2-way sync. It only syncs one Plex server to another Plex s
 2. **The following files must be in the same folder as plex_server_sync.sh**
 
    ```YAML
-   plex_server_sync.config
    edit_preferences.sh
    plex_rsync_exclude.txt
+   plex_server_sync.config
    ```
 
 3. **Both Plex servers must be running the same Plex Media Server version**
@@ -67,7 +67,7 @@ It does **not** do a 2-way sync. It only syncs one Plex server to another Plex s
 
 ### Settings
 
-You need to set the source and destination settings in the **plex_server_sync.config** file. There are also a few optional settings in the plex_server_sync.config file.
+You need to set the source and destination settings in the [plex_server_sync.config](plex_server_sync.config) file. There are also a few optional settings in the plex_server_sync.config file.
 
 **For example:**
 

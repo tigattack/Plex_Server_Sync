@@ -17,8 +17,7 @@
 #  1. You need SSH keys setup so rsync can connect without passwords.
 #  2. You also need your user to be able to sudo without a password prompt.
 #
-# https://github.com/007revad/Plex_Server_Sync
-# Script verified at https://www.shellcheck.net/
+# https://github.com/tigattack/Plex_Server_Sync
 #------------------------------------------------------------------------------
 
 # Check if script is running in GNU bash and not BusyBox ash

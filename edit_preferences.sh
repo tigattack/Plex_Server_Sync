@@ -2,8 +2,7 @@
 #-------------------------------------------------------------------------
 # Companion script to Plex_Server_Sync.sh
 #
-# https://github.com/007revad/Plex_Server_Sync
-# Script verified at https://www.shellcheck.net/
+# https://github.com/tigattack/Plex_Server_Sync
 #--------------------------------------------------------------------------
 
 cd "$(dirname "$0")" || {
