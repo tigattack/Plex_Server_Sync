@@ -16,6 +16,21 @@ Excluded_preferences_keys=(
     "ManualPortMappingPort"
     "PlexOnlineToken"
     "ProcessedMachineIdentifier"
+    # Custom exclude keys
+    "PubSubServerPing"
+    "allowMediaDeletion"
+    "DatabaseCacheSize"
+    "TranscoderQuality"
+    "LanNetworksBandwidth"
+    "FSEventLibraryPartialScanEnabled"
+    "FSEventLibraryUpdatesEnabled"
+    "ScheduledLibraryUpdatesEnabled"
+    "GenerateBIFBehavior"
+    "GenerateChapterThumbBehavior"
+    "GenerateCreditsMarkerBehavior"
+    "GenerateIntroMarkerBehavior"
+    "LoudnessAnalysisBehavior"
+    "MusicAnalysisBehavior"
 )
 
 cd "$(dirname "$0")" || {
