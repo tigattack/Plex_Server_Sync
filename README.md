@@ -10,6 +10,7 @@ Summary of changes:
 - Use rsync instead of scp - Same reason as above.
 - Remove DSM/Asustor support - Eliminate complexity from features I don't need.
 - Some bug fixes and code cleanup.
+- Add option to exclude syncing of specific keys in `Preferences.xml`. This works by syncing the entire file and then restoring specified keys from the backup.
 
 ### Description
 
@@ -85,6 +86,11 @@ Delete=yes
 DryRun=no
 LogPath=~/plex_server_sync_logs
 ```
+
+To exclude additional keys from Preferences.xml, append keys to the `Excluded_preferences_keys` array at the top of [edit_preferences.sh](edit_preferences.sh).
+
+> **Warning**
+> Remove the default preference keys at your own risk.
 
 ### Default contents of plex_rsync_exclude.txt
 
