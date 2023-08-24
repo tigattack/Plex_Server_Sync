@@ -31,6 +31,16 @@ Excluded_preferences_keys=(
     "GenerateIntroMarkerBehavior"
     "LoudnessAnalysisBehavior"
     "MusicAnalysisBehavior"
+    "ButlerTaskOptimizeDatabase"
+    "ButlerTaskUpgradeMediaAnalysis"
+    "ButlerTaskRefreshPeriodicMetadata"
+    "ButlerTaskDeepMediaAnalysis"
+    "ButlerTaskRefreshLocalMedia"
+    "ButlerTaskBackupDatabase"
+    "TranscoderCanOnlyRemuxVideo"
+    "TranscodeCountLimit"
+    "TranscoderToneMapping"
+    "TranscoderQuality"
 )
 
 cd "$(dirname "$0")" || {
