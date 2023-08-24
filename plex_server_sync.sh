@@ -271,6 +271,7 @@ fi
 # Backup destination Preferences.xml
 
 # Backup Preferences.xml to Preferences.bak
+echo "Backing up destination Preferences.xml to Preferences.bak" |& tee -a "$Log"
 ssh "${dst_User}@${dst_IP}" -p "$dst_SshPort" -i "$ssh_Key_File" \
     "sudo cp -pu '${dst_Directory}/Preferences.xml' '${dst_Directory}/Preferences.bak'" |& tee -a "$Log"
 
