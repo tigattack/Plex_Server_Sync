@@ -93,7 +93,7 @@ while [[ $Num -lt "$Len" ]]; do
     if [[ ${Pref_new[$Num]} ]] && [[ ${Pref_bak[$Num]} ]]; then
         if [[ ${Pref_new[$Num]} != "${Pref_bak[$Num]}" ]]; then
             echo "Updating ${Excluded_preferences_keys[$Num]}"
-            sed -i "s/ ${Excluded_preferences_keys[$Num]}=\"${Pref_new[$Num]}/ ${Excluded_preferences_keys[$Num]}=\"${Pref_bak[$Num]}/g" "Preferences.xml"
+            sed -i "s~ ${Excluded_preferences_keys[$Num]}=\"${Pref_new[$Num]}~ ${Excluded_preferences_keys[$Num]}=\"${Pref_bak[$Num]}~g" "Preferences.xml"
             changed=$((changed + 1))
         fi
     fi
