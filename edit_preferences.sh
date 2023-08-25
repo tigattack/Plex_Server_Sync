@@ -58,7 +58,7 @@ elif [[ ! -f Preferences.xml ]]; then
 fi
 
 # Padding var for formatting
-padding="                          "
+padding="                                  "
 
 # Get length of Excluded_preferences_keys
 Len=${#Excluded_preferences_keys[@]}
